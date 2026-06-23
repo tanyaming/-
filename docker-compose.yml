@@ -1,0 +1,36 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: vehicle-data-hub-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: vehicle_data_hub
+      MYSQL_USER: hub
+      MYSQL_PASSWORD: hub_password
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+    volumes:
+      - ./database/mysql-data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
+
+  # 企业自有 MQTT Broker — 九识将数据推送到这里
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: vehicle-data-hub-mqtt
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mqtt/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mqtt/passwd:/mosquitto/config/passwd:ro
+      - mqtt-data:/mosquitto/data
+    environment:
+      TZ: Asia/Shanghai
+
+volumes:
+  mqtt-data:

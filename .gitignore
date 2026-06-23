@@ -1,0 +1,12 @@
+.DS_Store
+.env
+__pycache__/
+*.py[cod]
+.venv/
+.npm-cache/
+.pip-cache/
+*.db
+backend/storage/
+frontend/node_modules/
+frontend/dist/
+database/mysql-data/
