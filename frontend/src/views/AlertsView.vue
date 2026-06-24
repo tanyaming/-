@@ -19,7 +19,7 @@ onUnmounted(() => clearInterval(timer))
         <tbody>
           <tr v-if="rows.length === 0"><td colspan="5" class="empty">暂无告警</td></tr>
           <tr v-for="r in rows" :key="r.id">
-            <td>{{ r.created_at }}</td>
+            <td>{{ $fmtTime(r.created_at) }}</td>
             <td><span :class="r.level === 'critical' ? 'badge badge-danger' : 'badge badge-warn'">{{ r.level }}</span></td>
             <td>{{ r.alert_type }}</td>
             <td>{{ r.vehicle_id || '-' }}</td>

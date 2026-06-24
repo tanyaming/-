@@ -84,6 +84,22 @@ def bind_regulatory(
         )
     if db.get(Vehicle, vehicle_id) is None:
         raise HTTPException(status_code=404, detail="vehicle not found")
+    # 同一辆车+同一平台只能有一个绑定
+    existing = (
+        db.query(VehicleRegulatoryBinding)
+        .filter(
+            VehicleRegulatoryBinding.vehicle_id == vehicle_id,
+            VehicleRegulatoryBinding.platform_id == payload.platform_id,
+        )
+        .one_or_none()
+    )
+    if existing:
+        # 更新现有绑定
+        for key, value in payload.model_dump().items():
+            setattr(existing, key, value)
+        db.commit()
+        db.refresh(existing)
+        return existing
     item = VehicleRegulatoryBinding(vehicle_id=vehicle_id, **payload.model_dump())
     db.add(item)
     db.commit()

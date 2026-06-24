@@ -15,17 +15,18 @@ onUnmounted(() => clearInterval(timer))
     <header class="page-header"><div><h1>实时状态</h1><p>车辆最新位置与运行状态（10秒自动刷新）</p></div></header>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>车辆ID</th><th>经度</th><th>纬度</th><th>速度(m/s)</th><th>电量</th><th>模式</th><th>更新时间</th></tr></thead>
+        <thead><tr><th>车辆</th><th>车牌</th><th>经度</th><th>纬度</th><th>速度(m/s)</th><th>电量</th><th>档位</th><th>更新时间</th></tr></thead>
         <tbody>
-          <tr v-if="rows.length === 0"><td colspan="7" class="empty">暂无实时数据，等待调度引擎拉取厂商数据...</td></tr>
+          <tr v-if="rows.length === 0"><td colspan="8" class="empty">暂无实时数据，等待调度引擎拉取厂商数据...</td></tr>
           <tr v-for="r in rows" :key="r.id">
-            <td>{{ r.vehicle_id }}</td>
+            <td>{{ r.vehicle_name || '车辆' + r.vehicle_id }}</td>
+            <td>{{ r.vehicle_plate_no || '-' }}</td>
             <td>{{ r.longitude?.toFixed(6) }}</td>
             <td>{{ r.latitude?.toFixed(6) }}</td>
             <td>{{ r.speed_mps?.toFixed(2) || '-' }}</td>
             <td>{{ r.battery_soc != null ? r.battery_soc + '%' : '-' }}</td>
-            <td>{{ r.drive_mode || '-' }}</td>
-            <td>{{ r.received_at }}</td>
+            <td>{{ r.gear || '-' }}</td>
+            <td>{{ $fmtTime(r.received_at) }}</td>
           </tr>
         </tbody>
       </table>

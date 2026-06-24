@@ -15,8 +15,9 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
     cert_storage_path: Path = Field(default=Path("./storage/certificates"))
     reporting_enabled: bool = False
-    chengdu_host: str = "182.148.54.57"
-    chengdu_port: int = 38090
+    #chengdu_host: str = "182.148.54.57"  #开发环境
+    chengdu_host: str = "171.221.218.40"  #测试环境
+    chengdu_port: int = 48090
 
     @property
     def cors_origin_list(self) -> list[str]:

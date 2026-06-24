@@ -77,8 +77,8 @@ def sync_vendor_vehicles(vendor_id: int, db: Session = Depends(get_db)) -> dict[
     updated = 0
 
     for v in raw_vehicles:
-        # 兼容新石器 (vehicleId/vin) 和九识 (id/name/number/vin)
-        vendor_vehicle_id = str(v.get("vehicleId") or v.get("id") or v.get("vin") or "")
+        # 兼容新石器 (vinId/vehicleId/vin) 和九识 (id/name/number/vin)
+        vendor_vehicle_id = str(v.get("vinId") or v.get("vehicleId") or v.get("id") or v.get("vin") or "")
         if not vendor_vehicle_id:
             continue
         vin = v.get("vin")

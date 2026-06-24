@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, reactive, computed } from 'vue'
+import { ref, onMounted, reactive, computed, watch } from 'vue'
 import { api } from '../api/client'
 
 const rows = ref([])
@@ -107,6 +107,27 @@ async function toggleStatus(row) {
   } catch (e) { message.value = `操作失败: ${e.message}` }
 }
 
+// 打开监管绑定弹窗时回填已有数据
+watch(showBindRegulatory, (vehicleId) => {
+  if (!vehicleId) {
+    regulatoryBindForm.platform_id = null
+    regulatoryBindForm.regulatory_vehicle_no = ''
+    regulatoryBindForm.reporting_strategy = 'strict'
+    return
+  }
+  const vehicle = rows.value.find(r => r.id === vehicleId)
+  const existing = vehicle?.regulatory_bindings?.[0]
+  if (existing) {
+    regulatoryBindForm.platform_id = existing.platform_id
+    regulatoryBindForm.regulatory_vehicle_no = existing.regulatory_vehicle_no
+    regulatoryBindForm.reporting_strategy = existing.reporting_strategy || 'strict'
+  } else {
+    regulatoryBindForm.platform_id = null
+    regulatoryBindForm.regulatory_vehicle_no = ''
+    regulatoryBindForm.reporting_strategy = 'strict'
+  }
+})
+
 onMounted(load)
 </script>
 
@@ -177,7 +198,7 @@ onMounted(load)
     <!-- 监管绑定弹窗 -->
     <div v-if="showBindRegulatory" class="modal-overlay" @click.self="showBindRegulatory = null">
       <div class="modal">
-        <h2>绑定监管平台</h2>
+        <h2>{{ rows.find(r => r.id === showBindRegulatory)?.regulatory_bindings?.length ? '修改监管绑定' : '绑定监管平台' }}</h2>
         <div class="form-grid">
           <label>监管平台 *
             <select v-model="regulatoryBindForm.platform_id">
@@ -236,7 +257,7 @@ onMounted(load)
               <div style="display:flex;gap:0.25rem;flex-wrap:wrap;">
                 <button @click="startEdit(r)" style="font-size:0.7rem;padding:0.2rem 0.4rem;">编辑</button>
                 <button @click="showBindVendor = r.id" style="font-size:0.7rem;padding:0.2rem 0.4rem;">绑定厂商</button>
-                <button @click="showBindRegulatory = r.id" style="font-size:0.7rem;padding:0.2rem 0.4rem;">绑定监管</button>
+                <button @click="showBindRegulatory = r.id" style="font-size:0.7rem;padding:0.2rem 0.4rem;">{{ r.regulatory_bindings?.length ? '修改监管' : '绑定监管' }}</button>
                 <button @click="toggleStatus(r)" style="font-size:0.7rem;padding:0.2rem 0.4rem;">{{ r.status === 'active' ? '停用' : '启用' }}</button>
               </div>
             </td>

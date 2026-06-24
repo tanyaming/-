@@ -91,7 +91,7 @@ class NeolixAdapter(VendorAdapter):
             response = client.post(
                 f"{self.base_url}/openapi-server/slvapi/batchGetVehicleList",
                 params=self._signed_params(token),
-                json={"vin": vins},
+                json=vins,
                 headers=self._headers(),
             )
             response.raise_for_status()

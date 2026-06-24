@@ -179,16 +179,26 @@ class SchedulerEngine:
             if not bindings:
                 return False
 
-            vins = [b.vendor_vehicle_id for b in bindings]
-            vehicle_map = {b.vendor_vehicle_id: b.vehicle_id for b in bindings}
+            # 新石器 batchGetVehicleList 接口要求传 17 位 VIN 码（车架号）
+            # 建立 vin -> vehicle_id 映射，同时用 vin 请求
+            vin_list = [b.vendor_vin for b in bindings if b.vendor_vin]
+            # 用 vinId 补充映射，避免回退到旧数据
+            vin_to_vehicle = {b.vendor_vin: b.vehicle_id for b in bindings if b.vendor_vin}
+            for b in bindings:
+                if b.vendor_vehicle_id and b.vendor_vehicle_id not in vin_list:
+                    vin_to_vehicle[b.vendor_vehicle_id] = b.vehicle_id
 
-            raw_list = adapter.batch_get_realtime(vins)
-            if raw_list:
-                self._update_connection_status(ConnectionKind.VENDOR, account.id, "ok")
+            if not vin_list:
+                return False
+
+            raw_list = adapter.batch_get_realtime(vin_list)
+            # 连接正常（即使车辆当前无实时数据也应标记为 ok）
+            self._update_connection_status(ConnectionKind.VENDOR, account.id, "ok")
 
             for item in raw_list:
-                vin = item.get("vinId") or item.get("vin")
-                vehicle_id = vehicle_map.get(vin)
+                vin = item.get("vin")
+                vin_id = item.get("vinId")
+                vehicle_id = vin_to_vehicle.get(vin) or vin_to_vehicle.get(vin_id)
                 if not vehicle_id:
                     continue
                 try:

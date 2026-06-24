@@ -5,7 +5,7 @@ import { api } from '../api/client'
 const rows = ref([])
 const message = ref('')
 const form = reactive({
-  name: '', city: '成都', host: '182.148.54.57', port: 38090, coordinate_system: 'WGS84', report_frequency_hz: 10, is_enabled: true,
+  name: '', city: '成都', host: '171.221.218.40', port: 38090, coordinate_system: 'WGS84', report_frequency_hz: 10, is_enabled: true,
 })
 
 async function load() { rows.value = await api.get('/regulatory-platforms') }

@@ -26,7 +26,7 @@ onUnmounted(() => clearInterval(timer))
             </td>
             <td>{{ r.ref_id }}</td>
             <td><span :class="r.status === 'ok' ? 'badge badge-success' : 'badge badge-danger'">{{ r.status }}</span></td>
-            <td>{{ r.last_seen_at || '-' }}</td>
+            <td>{{ $fmtTime(r.last_seen_at) }}</td>
             <td>{{ r.last_error || '-' }}</td>
           </tr>
         </tbody>

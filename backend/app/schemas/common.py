@@ -111,6 +111,8 @@ class VehicleRegulatoryBindingCreate(BaseModel):
 class VehicleStateRead(ORMModel):
     id: int
     vehicle_id: int
+    vehicle_name: str | None = None
+    vehicle_plate_no: str | None = None
     source_vendor_id: int | None = None
     source_timestamp: datetime | None = None
     received_at: datetime

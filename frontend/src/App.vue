@@ -49,9 +49,13 @@ onMounted(async () => {
   }
   try {
     user.value = await api.get('/auth/me')
-  } catch {
-    localStorage.removeItem('token')
-    router.push('/login')
+  } catch (e) {
+    // /auth/me 失败不一定代表 token 无效，可能是网络或后端重启
+    // 只有明确 401 才清 token 跳登录
+    if (e.message === '未登录或登录已过期') {
+      router.push('/login')
+    }
+    // 其他错误（如网络波动）不跳登录，保留 token
   }
 })
 </script>

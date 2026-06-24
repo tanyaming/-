@@ -262,6 +262,6 @@ CREATE TABLE IF NOT EXISTS operation_logs (
 INSERT INTO regulatory_platforms
   (name, city_code, platform_type, host, port, coordinate_system, report_frequency_hz, fault_frequency_hz, config, is_enabled)
 VALUES
-  ('成都市智能网联汽车监管平台', '510100', 'chengdu', '182.148.54.57', 38090, 'WGS84', 10, 1, JSON_OBJECT(), TRUE)
+  ('成都市智能网联汽车监管平台', '510100', 'chengdu', '171.221.218.40', 38090, 'WGS84', 10, 1, JSON_OBJECT(), TRUE)
 ON DUPLICATE KEY UPDATE name = VALUES(name);
 

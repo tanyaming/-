@@ -12,8 +12,12 @@ async function request(method, url, body) {
   })
 
   if (res.status === 401) {
-    localStorage.removeItem('token')
-    window.location.hash = '#/login'
+    // 只有在确实需要鉴权的页面才跳登录，避免误判
+    const token = localStorage.getItem('token')
+    if (token) {
+      localStorage.removeItem('token')
+      window.location.hash = '#/login'
+    }
     throw new Error('未登录或登录已过期')
   }
 
