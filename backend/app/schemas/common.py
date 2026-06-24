@@ -61,6 +61,36 @@ class VehicleRead(ORMModel, VehicleCreate):
     updated_at: datetime
 
 
+class VehicleVendorBindingRead(ORMModel):
+    id: int
+    vehicle_id: int
+    vendor_id: int
+    vendor_vehicle_id: str
+    vendor_vehicle_name: str | None = None
+    vendor_vin: str | None = None
+    is_primary: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class VehicleRegulatoryBindingRead(ORMModel):
+    id: int
+    vehicle_id: int
+    platform_id: int
+    regulatory_vehicle_no: str
+    certificate_id: int | None = None
+    is_enabled: bool
+    reporting_strategy: str
+    config: dict[str, Any]
+    created_at: datetime
+    updated_at: datetime
+
+
+class VehicleDetailRead(VehicleRead):
+    vendor_bindings: list[VehicleVendorBindingRead] = []
+    regulatory_bindings: list[VehicleRegulatoryBindingRead] = []
+
+
 class VehicleVendorBindingCreate(BaseModel):
     vendor_id: int
     vendor_vehicle_id: str

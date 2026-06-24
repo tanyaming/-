@@ -20,7 +20,6 @@ const navItems = [
   { path: '/states', label: '实时状态' },
   { path: '/reports', label: '上报监控' },
   { path: '/alerts', label: '告警中心' },
-  { path: '/mappings', label: '映射配置' },
 ]
 
 async function login() {
@@ -70,7 +69,7 @@ onMounted(async () => {
 
   <div v-else class="layout">
     <aside class="sidebar">
-      <div class="sidebar-brand" @click="router.push('/')">🚗 数据中台</div>
+      <div class="sidebar-brand" @click="router.push('/')"> 数据中台</div>
       <nav>
         <a
           v-for="item in navItems"

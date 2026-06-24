@@ -3,14 +3,22 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.db.session import get_db
 from app.models.entities import Vehicle, VehicleRegulatoryBinding, VehicleVendorBinding
-from app.schemas.common import VehicleCreate, VehicleRead, VehicleRegulatoryBindingCreate, VehicleVendorBindingCreate
+from app.schemas.common import VehicleCreate, VehicleDetailRead, VehicleRead, VehicleRegulatoryBindingCreate, VehicleRegulatoryBindingRead, VehicleVendorBindingCreate, VehicleVendorBindingRead
 
 router = APIRouter()
 
 
-@router.get("", response_model=list[VehicleRead])
+@router.get("", response_model=list[VehicleDetailRead])
 def list_vehicles(db: Session = Depends(get_db)) -> list[Vehicle]:
-    return db.query(Vehicle).order_by(Vehicle.id.desc()).all()
+    return (
+        db.query(Vehicle)
+        .options(
+            selectinload(Vehicle.vendor_bindings),
+            selectinload(Vehicle.regulatory_bindings),
+        )
+        .order_by(Vehicle.id.desc())
+        .all()
+    )
 
 
 @router.post("", response_model=VehicleRead)
@@ -22,7 +30,7 @@ def create_vehicle(payload: VehicleCreate, db: Session = Depends(get_db)) -> Veh
     return item
 
 
-@router.get("/{vehicle_id}", response_model=None)
+@router.get("/{vehicle_id}", response_model=VehicleDetailRead)
 def get_vehicle(vehicle_id: int, db: Session = Depends(get_db)) -> Vehicle:
     item = (
         db.query(Vehicle)
@@ -68,8 +76,12 @@ def bind_vendor(
 def bind_regulatory(
     vehicle_id: int, payload: VehicleRegulatoryBindingCreate, db: Session = Depends(get_db)
 ) -> VehicleRegulatoryBinding:
-    if len(payload.regulatory_vehicle_no.encode("utf-8")) != 8:
-        raise HTTPException(status_code=422, detail="regulatory_vehicle_no must be 8 bytes")
+    encoded = payload.regulatory_vehicle_no.encode("utf-8")
+    if len(encoded) != 8:
+        raise HTTPException(
+            status_code=422,
+            detail=f"监管车辆编号必须恰好8字节（UTF-8编码），格式 AABCDDDD，仅限数字和英文字母。当前输入 {len(payload.regulatory_vehicle_no)} 个字符，编码后 {len(encoded)} 字节"
+        )
     if db.get(Vehicle, vehicle_id) is None:
         raise HTTPException(status_code=404, detail="vehicle not found")
     item = VehicleRegulatoryBinding(vehicle_id=vehicle_id, **payload.model_dump())

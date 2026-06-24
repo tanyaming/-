@@ -9,7 +9,6 @@ import CertificatesView from './views/CertificatesView.vue'
 import StatesView from './views/StatesView.vue'
 import ReportsView from './views/ReportsView.vue'
 import AlertsView from './views/AlertsView.vue'
-import MappingsView from './views/MappingsView.vue'
 
 const routes = [
   { path: '/', component: DashboardView, meta: { title: '概览' } },
@@ -20,7 +19,6 @@ const routes = [
   { path: '/states', component: StatesView, meta: { title: '实时状态' } },
   { path: '/reports', component: ReportsView, meta: { title: '上报监控' } },
   { path: '/alerts', component: AlertsView, meta: { title: '告警中心' } },
-  { path: '/mappings', component: MappingsView, meta: { title: '映射配置' } },
 ]
 
 const router = createRouter({
