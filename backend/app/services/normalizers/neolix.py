@@ -46,6 +46,7 @@ def normalize_neolix_vehicle_info(payload: dict[str, Any]) -> StandardVehicleSta
             {"position": "rear_left", "pressure": data.get("lrPressure")},
             {"position": "rear_right", "pressure": data.get("rrPressure")},
         ],
+        doors={"trunk": data.get("cabinetStatus") == 1} if data.get("cabinetStatus") is not None else {},
         raw=data,
         quality={"source": "neolix_http"},
     )

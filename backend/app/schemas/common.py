@@ -128,6 +128,8 @@ class VehicleStateRead(ORMModel):
     fault_level: str | None = None
     quality: dict[str, Any]
     payload: dict[str, Any]
+    # 逆地理编码地址
+    address: dict[str, str] | None = None
 
 
 class CertificateRead(ORMModel):

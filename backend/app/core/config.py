@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     #chengdu_host: str = "182.148.54.57"  #开发环境
     chengdu_host: str = "171.221.218.40"  #测试环境
     chengdu_port: int = 48090
+    # 逆地理编码 (高德地图 Web API Key)
+    amap_web_api_key: str = "5a07496722e0cc1a6aa118eacf313042"
 
     @property
     def cors_origin_list(self) -> list[str]:

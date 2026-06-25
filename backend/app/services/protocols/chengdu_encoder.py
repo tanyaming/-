@@ -148,6 +148,30 @@ def _light_bits(lights: dict) -> int:
     return bits
 
 
+def _door_bits(doors: dict) -> int:
+    """车门状态位域编码
+    BIT0-5: 普通汽车门状态 (0=关, 1=开)
+      BIT0 引擎盖, BIT1 左前门, BIT2 右前门, BIT3 左后门, BIT4 右后门, BIT5 后备箱
+    BIT6-8: 商用客车门状态
+    BIT14-15: 有效位 (0=有效, 1=普通汽车, 2=商用客车, 3=全部无效)
+    """
+    if not doors:
+        return 0x4000  # 普通汽车，所有门关闭（缺省）
+    bits = 0x4000  # 默认标记为普通汽车
+    # 车门映射
+    door_map = {
+        "engine_hood": 0, "front_left": 1, "front_right": 2,
+        "rear_left": 3, "rear_right": 4, "trunk": 5,
+    }
+    for key, bit in door_map.items():
+        val = doors.get(key)
+        # 支持 bool 值或 0/1 数字
+        is_open = val if isinstance(val, bool) else (val == 1 or str(val).lower() in ("open", "true", "1"))
+        if is_open:
+            bits |= (1 << bit)
+    return bits
+
+
 def encode_runtime_state(vehicle_no: str, message_no: int, state: StandardVehicleState) -> bytes:
     lon, lat = _coord_for_chengdu(state)
     source_ms = int(state.source_timestamp.timestamp() * 1000) if state.source_timestamp else _now_ms()
@@ -179,7 +203,7 @@ def encode_runtime_state(vehicle_no: str, message_no: int, state: StandardVehicl
             struct.pack(">H", 0xFFFF),
             struct.pack(">H", 0xFFFF),
             struct.pack(">B", DRIVE_MODE_VALUE.get(state.drive_mode or "", 8)),
-            struct.pack(">BBBBBBBBB", 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF),
+            struct.pack(">BBBBBBBBBB", 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF),
             struct.pack(">I", 0xFFFFFFFF if state.odometer_km is None else clamp(round(state.odometer_km * 10), 0, 10_000_000)),
             struct.pack(">H", 0xFFFF),
             struct.pack(">H", 0xFFFF if state.battery_soc is None else clamp(round(state.battery_soc * 100), 0, 10_000)),
@@ -196,7 +220,7 @@ def encode_runtime_state(vehicle_no: str, message_no: int, state: StandardVehicl
             struct.pack(f">{wheel_count}H", *wheel_speeds) if wheel_count else b"",
             struct.pack(f">{wheel_count}H", *tire_pressures) if wheel_count else b"",
             struct.pack(">H", _light_bits(state.lights)),
-            struct.pack(">H", 0xC000),
+            struct.pack(">H", _door_bits(state.doors)),
         ]
     )
     return _header(MSG_RUNTIME, 0x02, payload, source_ms) + payload

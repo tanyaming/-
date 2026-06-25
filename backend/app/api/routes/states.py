@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.entities import Vehicle, VehicleLatestState
 from app.schemas.common import VehicleStateRead
+from app.services.geocode import reverse_geocode
 from app.services.state_store import persist_standard_state
 
 router = APIRouter()
@@ -24,10 +25,12 @@ def list_latest_states(db: Session = Depends(get_db)) -> list[dict]:
     result = []
     for s in states:
         v = vehicle_map.get(s.vehicle_id)
+        addr = reverse_geocode(s.latitude, s.longitude) if s.latitude and s.longitude else None
         result.append({
             **s.__dict__,
             "vehicle_name": v.name if v else None,
             "vehicle_plate_no": v.plate_no if v else None,
+            "address": addr,
         })
     return result
 
