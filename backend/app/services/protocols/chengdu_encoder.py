@@ -34,9 +34,9 @@ DRIVE_MODE_VALUE = {
 @dataclass
 class ChengduStaticParams:
     vehicle_no: str
-    vehicle_software_version: str = ""
-    ad_hardware_version: str = ""
-    ad_software_version: str = ""
+    vehicle_software_version: str = "v1.0.0"
+    ad_hardware_version: str = "H1.0"
+    ad_software_version: str = "A1.0"
     wireless_type: int = 1
     location_accuracy: int = 255
     time_sync_type: int = 2
