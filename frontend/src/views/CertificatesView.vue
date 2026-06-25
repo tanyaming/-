@@ -22,6 +22,18 @@ async function load() {
   rows.value = certs
   vehicles.value = vList
 }
+
+async function removeCert(cert) {
+  if (!confirm(`确定要删除证书 "${cert.name}" (ID:${cert.id}) 吗？此操作不可恢复。`)) return
+  message.value = ''
+  try {
+    await api.delete(`/certificates/${cert.id}`)
+    message.value = '删除成功'
+    await load()
+  } catch (e) {
+    message.value = `删除失败: ${e.message}`
+  }
+}
 async function upload() {
   const certFile = certInput.value?.files?.[0]
   if (!certFile) { message.value = '请选择证书文件'; return }
@@ -72,9 +84,9 @@ onMounted(load)
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>ID</th><th>名称</th><th>证书路径</th><th>绑定车辆</th><th>指纹</th><th>状态</th></tr></thead>
+        <thead><tr><th>ID</th><th>名称</th><th>证书路径</th><th>绑定车辆</th><th>指纹</th><th>状态</th><th>操作</th></tr></thead>
         <tbody>
-          <tr v-if="rows.length === 0"><td colspan="6" class="empty">暂无证书</td></tr>
+          <tr v-if="rows.length === 0"><td colspan="7" class="empty">暂无证书</td></tr>
           <tr v-for="r in rows" :key="r.id">
             <td>{{ r.id }}</td>
             <td>{{ r.name }}</td>
@@ -82,6 +94,9 @@ onMounted(load)
             <td>{{ r.vehicle_id ? '车辆' + r.vehicle_id : '-' }}</td>
             <td style="font-size:.7rem;font-family:monospace;max-width:120px;overflow:hidden;text-overflow:ellipsis;" :title="r.fingerprint">{{ r.fingerprint?.slice(0, 12) || '-' }}</td>
             <td>{{ r.is_enabled ? '✅' : '❌' }}</td>
+            <td>
+              <button @click="removeCert(r)" style="font-size:0.7rem;padding:0.2rem 0.5rem;background:#fff;border:1px solid #e53935;color:#e53935;border-radius:4px;cursor:pointer;">移除</button>
+            </td>
           </tr>
         </tbody>
       </table>
