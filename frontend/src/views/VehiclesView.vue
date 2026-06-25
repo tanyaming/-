@@ -11,9 +11,45 @@ const showBindVendor = ref(null)
 const showBindRegulatory = ref(null)
 const editing = ref(null)
 
+// 筛选状态
+const filter = reactive({ q: '', brand: '', status: '', vendor_id: null, platform_id: null, bound: '' })
+const brandOptions = computed(() => [...new Set(rows.value.map(r => r.brand).filter(Boolean))])
+
 const form = reactive({ name: '', vin: '', plate_no: '', model: '', brand: '', vehicle_category: '', power_type: '', project_code: '', status: 'active' })
 const vendorBindForm = reactive({ vendor_id: null, vendor_vehicle_id: '', vendor_vehicle_name: '', vendor_vin: '' })
 const regulatoryBindForm = reactive({ platform_id: null, regulatory_vehicle_no: '', reporting_strategy: 'strict' })
+
+// 前端筛选
+const filteredRows = computed(() => {
+  let list = rows.value
+  if (filter.q) {
+    const q = filter.q.toLowerCase()
+    list = list.filter(r =>
+      (r.name || '').toLowerCase().includes(q) ||
+      (r.plate_no || '').toLowerCase().includes(q) ||
+      (r.vin || '').toLowerCase().includes(q) ||
+      (r.brand || '').toLowerCase().includes(q)
+    )
+  }
+  if (filter.brand) {
+    list = list.filter(r => r.brand === filter.brand)
+  }
+  if (filter.status) {
+    list = list.filter(r => r.status === filter.status)
+  }
+  if (filter.vendor_id) {
+    list = list.filter(r => (r.vendor_bindings || []).some(b => b.vendor_id == filter.vendor_id))
+  }
+  if (filter.platform_id) {
+    list = list.filter(r => (r.regulatory_bindings || []).some(b => b.platform_id == filter.platform_id))
+  }
+  if (filter.bound === 'bound') {
+    list = list.filter(r => (r.regulatory_bindings || []).length > 0)
+  } else if (filter.bound === 'unbound') {
+    list = list.filter(r => !(r.regulatory_bindings || []).length)
+  }
+  return list
+})
 
 // 用于回填编辑表单
 function resetForm() {
@@ -222,6 +258,31 @@ onMounted(load)
       </div>
     </div>
 
+    <!-- 筛选栏 -->
+    <div class="filter-bar">
+      <input type="text" v-model="filter.q" placeholder="搜索车辆名称/车牌/VIN..." class="filter-input" @input="filter.q = $event.target.value" />
+      <select v-model="filter.brand" class="filter-select">
+        <option value="">全部品牌</option>
+        <option v-for="b in brandOptions" :key="b" :value="b">{{ b }}</option>
+      </select>
+      <select v-model="filter.status" class="filter-select">
+        <option value="">全部状态</option>
+        <option value="active">启用</option>
+        <option value="inactive">停用</option>
+      </select>
+      <select v-model="filter.vendor_id" class="filter-select">
+        <option :value="null">全部厂商</option>
+        <option v-for="v in vendors" :key="v.id" :value="v.id">{{ v.name }}</option>
+      </select>
+      <select v-model="filter.bound" class="filter-select">
+        <option value="">全部绑定</option>
+        <option value="bound">已绑定监管</option>
+        <option value="unbound">未绑定监管</option>
+      </select>
+      <button @click="Object.assign(filter, { q: '', brand: '', status: '', vendor_id: null, platform_id: null, bound: '' })" class="filter-clear">清除筛选</button>
+      <span class="filter-count">共 {{ filteredRows.length }} 辆车</span>
+    </div>
+
     <!-- 车辆列表 -->
     <div class="table-wrap">
       <table>
@@ -238,10 +299,10 @@ onMounted(load)
           </tr>
         </thead>
         <tbody>
-          <tr v-if="rows.length === 0">
+          <tr v-if="filteredRows.length === 0">
             <td colspan="8" class="empty">暂无车辆，请先接入厂商后同步，或手动创建</td>
           </tr>
-          <tr v-for="r in rows" :key="r.id">
+          <tr v-for="r in filteredRows" :key="r.id">
             <td>{{ r.id }}</td>
             <td>{{ r.name }}</td>
             <td>{{ r.vin || '-' }}</td>
@@ -269,6 +330,30 @@ onMounted(load)
 </template>
 
 <style scoped>
+.filter-bar {
+  display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;
+  margin-bottom: 1rem; padding: 0.75rem;
+  background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;
+}
+.filter-input {
+  padding: 0.4rem 0.75rem; border: 1px solid #d9d9d9; border-radius: 6px;
+  font-size: 0.85rem; min-width: 220px;
+}
+.filter-input:focus { border-color: #4096ff; outline: none; box-shadow: 0 0 0 2px rgba(64,150,255,.15); }
+.filter-select {
+  padding: 0.4rem 0.5rem; border: 1px solid #d9d9d9; border-radius: 6px;
+  font-size: 0.85rem; background: #fff;
+}
+.filter-clear {
+  padding: 0.4rem 0.75rem; font-size: 0.8rem; border: 1px solid #d9d9d9;
+  border-radius: 6px; background: #fff; cursor: pointer; color: #666;
+}
+.filter-clear:hover { background: #eee; }
+.filter-count {
+  margin-left: auto; font-size: 0.8rem; color: #888;
+  white-space: nowrap;
+}
+
 .modal-overlay {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,.35); display: flex; align-items: center; justify-content: center; z-index: 100;
