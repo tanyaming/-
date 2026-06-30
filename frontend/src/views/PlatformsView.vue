@@ -4,11 +4,18 @@ import { api } from '../api/client'
 
 const rows = ref([])
 const message = ref('')
+const loading = ref(true)
 const form = reactive({
   name: '', city: '成都', host: '171.221.218.40', port: 38090, coordinate_system: 'WGS84', report_frequency_hz: 10, is_enabled: true,
 })
 
-async function load() { rows.value = await api.get('/regulatory-platforms') }
+async function load() {
+  try {
+    rows.value = await api.get('/regulatory-platforms')
+  } finally {
+    loading.value = false
+  }
+}
 async function save() {
   message.value = ''
   try {
@@ -37,7 +44,12 @@ onMounted(load)
       <table>
         <thead><tr><th>ID</th><th>名称</th><th>城市</th><th>地址</th><th>端口</th><th>坐标系</th><th>频率</th><th>启用</th></tr></thead>
         <tbody>
-          <tr v-if="rows.length === 0"><td colspan="8" class="empty">暂无监管平台</td></tr>
+          <template v-if="loading">
+            <tr v-for="n in 2" :key="'sk'+n"><td colspan="8" style="padding:0;">
+              <div class="skeleton-row"><div class="skeleton-cell"></div><div class="skeleton-cell"></div><div class="skeleton-cell"></div></div>
+            </td></tr>
+          </template>
+          <tr v-else-if="rows.length === 0"><td colspan="8" class="empty"><span class="empty-icon">🏛️</span>暂无监管平台</td></tr>
           <tr v-for="r in rows" :key="r.id"><td>{{ r.id }}</td><td>{{ r.name }}</td><td>{{ r.city }}</td><td>{{ r.host }}</td><td>{{ r.port }}</td><td>{{ r.coordinate_system }}</td><td>{{ r.report_frequency_hz }}Hz</td><td>{{ r.is_enabled ? '✅' : '❌' }}</td></tr>
         </tbody>
       </table>

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.entities import Vehicle, VehicleLatestState
 from app.schemas.common import VehicleStateRead
-from app.services.geocode import reverse_geocode
+from app.services.geocode import get_address_fast
 from app.services.state_store import persist_standard_state
 
 router = APIRouter()
@@ -25,7 +25,9 @@ def list_latest_states(db: Session = Depends(get_db)) -> list[dict]:
     result = []
     for s in states:
         v = vehicle_map.get(s.vehicle_id)
-        addr = reverse_geocode(s.latitude, s.longitude) if s.latitude and s.longitude else None
+        # 非阻塞：命中内存缓存即返回地址，未命中触发后台编码，下次刷新补齐。
+        # 接口主链路不再发起任何阻塞的外网请求。
+        addr = get_address_fast(s.latitude, s.longitude)
         result.append({
             **s.__dict__,
             "vehicle_name": v.name if v else None,

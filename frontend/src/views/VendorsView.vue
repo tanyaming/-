@@ -4,6 +4,7 @@ import { api } from '../api/client'
 
 const rows = ref([])
 const message = ref('')
+const loading = ref(true)
 const editingId = ref(null)
 const form = reactive({
   name: '',
@@ -27,7 +28,11 @@ function resetForm() {
 }
 
 async function load() {
-  rows.value = await api.get('/vendors')
+  try {
+    rows.value = await api.get('/vendors')
+  } finally {
+    loading.value = false
+  }
 }
 
 async function saveVendor() {
@@ -166,7 +171,12 @@ onMounted(load)
           <tr><th>ID</th><th>名称</th><th>类型</th><th>环境</th><th>地址</th><th>启用</th><th>操作</th></tr>
         </thead>
         <tbody>
-          <tr v-if="rows.length === 0"><td colspan="7" class="empty">暂无厂商账号</td></tr>
+          <template v-if="loading">
+            <tr v-for="n in 3" :key="'sk'+n"><td colspan="7" style="padding:0;">
+              <div class="skeleton-row"><div class="skeleton-cell"></div><div class="skeleton-cell"></div><div class="skeleton-cell"></div></div>
+            </td></tr>
+          </template>
+          <tr v-else-if="rows.length === 0"><td colspan="7" class="empty"><span class="empty-icon">🔌</span>暂无厂商账号</td></tr>
           <tr v-for="item in rows" :key="item.id" :class="{ 'editing-row': editingId === item.id }">
             <td>{{ item.id }}</td>
             <td>{{ item.name }}</td>

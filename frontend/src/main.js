@@ -1,24 +1,17 @@
 import { createApp } from 'vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import App from './App.vue'
-import DashboardView from './views/DashboardView.vue'
-import VendorsView from './views/VendorsView.vue'
-import PlatformsView from './views/PlatformsView.vue'
-import VehiclesView from './views/VehiclesView.vue'
-import CertificatesView from './views/CertificatesView.vue'
-import StatesView from './views/StatesView.vue'
-import ReportsView from './views/ReportsView.vue'
-import AlertsView from './views/AlertsView.vue'
 
+// 路由懒加载：各页面按需加载，减小首屏 JS，加快首次渲染
 const routes = [
-  { path: '/', component: DashboardView, meta: { title: '概览' } },
-  { path: '/vendors', component: VendorsView, meta: { title: '厂商接入' } },
-  { path: '/platforms', component: PlatformsView, meta: { title: '监管平台' } },
-  { path: '/vehicles', component: VehiclesView, meta: { title: '车辆管理' } },
-  { path: '/certificates', component: CertificatesView, meta: { title: '证书管理' } },
-  { path: '/states', component: StatesView, meta: { title: '实时状态' } },
-  { path: '/reports', component: ReportsView, meta: { title: '上报监控' } },
-  { path: '/alerts', component: AlertsView, meta: { title: '告警中心' } },
+  { path: '/', component: () => import('./views/DashboardView.vue'), meta: { title: '概览' } },
+  { path: '/vendors', component: () => import('./views/VendorsView.vue'), meta: { title: '厂商接入' } },
+  { path: '/platforms', component: () => import('./views/PlatformsView.vue'), meta: { title: '监管平台' } },
+  { path: '/vehicles', component: () => import('./views/VehiclesView.vue'), meta: { title: '车辆管理' } },
+  { path: '/certificates', component: () => import('./views/CertificatesView.vue'), meta: { title: '证书管理' } },
+  { path: '/states', component: () => import('./views/StatesView.vue'), meta: { title: '实时状态' } },
+  { path: '/reports', component: () => import('./views/ReportsView.vue'), meta: { title: '上报监控' } },
+  { path: '/alerts', component: () => import('./views/AlertsView.vue'), meta: { title: '告警中心' } },
 ]
 
 const router = createRouter({

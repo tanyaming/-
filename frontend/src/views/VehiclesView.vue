@@ -6,6 +6,7 @@ const rows = ref([])
 const vendors = ref([])
 const platforms = ref([])
 const message = ref('')
+const loading = ref(true)
 const showCreate = ref(false)
 const showBindVendor = ref(null)
 const showBindRegulatory = ref(null)
@@ -58,14 +59,18 @@ function resetForm() {
 }
 
 async function load() {
-  const [v, rowsData, p] = await Promise.all([
-    api.get('/vendors').catch(() => []),
-    api.get('/vehicles').catch(() => []),
-    api.get('/regulatory-platforms').catch(() => []),
-  ])
-  vendors.value = v
-  rows.value = rowsData
-  platforms.value = p
+  try {
+    const [v, rowsData, p] = await Promise.all([
+      api.get('/vendors').catch(() => []),
+      api.get('/vehicles').catch(() => []),
+      api.get('/regulatory-platforms').catch(() => []),
+    ])
+    vendors.value = v
+    rows.value = rowsData
+    platforms.value = p
+  } finally {
+    loading.value = false
+  }
 }
 
 function vendorName(bindings) {
@@ -299,8 +304,13 @@ onMounted(load)
           </tr>
         </thead>
         <tbody>
-          <tr v-if="filteredRows.length === 0">
-            <td colspan="8" class="empty">暂无车辆，请先接入厂商后同步，或手动创建</td>
+          <template v-if="loading">
+            <tr v-for="n in 5" :key="'sk'+n"><td colspan="8" style="padding:0;">
+              <div class="skeleton-row"><div class="skeleton-cell"></div><div class="skeleton-cell"></div><div class="skeleton-cell"></div><div class="skeleton-cell"></div></div>
+            </td></tr>
+          </template>
+          <tr v-else-if="filteredRows.length === 0">
+            <td colspan="8" class="empty"><span class="empty-icon">🚗</span>暂无车辆，请先接入厂商后同步，或手动创建</td>
           </tr>
           <tr v-for="r in filteredRows" :key="r.id">
             <td>{{ r.id }}</td>

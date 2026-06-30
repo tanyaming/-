@@ -191,7 +191,7 @@ class SchedulerEngine:
             if not vin_list:
                 return False
 
-            raw_list = adapter.batch_get_realtime(vin_list)
+            raw_list = await adapter.batch_get_realtime(vin_list)
             # 连接正常（即使车辆当前无实时数据也应标记为 ok）
             self._update_connection_status(ConnectionKind.VENDOR, account.id, "ok")
 

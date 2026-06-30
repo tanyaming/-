@@ -1,7 +1,21 @@
+import logging
+import time
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+
+logger = logging.getLogger(__name__)
+
+
+class TimingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        t0 = time.monotonic()
+        response = await call_next(request)
+        elapsed = (time.monotonic() - t0) * 1000
+        logger.warning("⏱ %s %s → %d %.0fms", request.method, request.url.path, response.status_code, elapsed)
+        return response
 
 from app.api.routes import alerts, auth, certificates, health, mappings, platforms, reports, scheduler_ctrl, states, vendors, vehicles
 from app.core.auth_middleware import AuthMiddleware
@@ -39,6 +53,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Timing 中间件（调试用，问题定位后移除）
+app.add_middleware(TimingMiddleware)
 
 # 认证中间件
 app.add_middleware(AuthMiddleware)

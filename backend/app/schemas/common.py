@@ -1,7 +1,14 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, computed_field
+
+GEAR_CN_MAP = {
+    "drive": "前进",
+    "reverse": "倒车",
+    "parking": "驻车",
+    "neutral": "空挡",
+}
 
 
 class ORMModel(BaseModel):
@@ -130,6 +137,12 @@ class VehicleStateRead(ORMModel):
     payload: dict[str, Any]
     # 逆地理编码地址
     address: dict[str, str] | None = None
+
+    @computed_field
+    def gear_label(self) -> str:
+        if self.gear is None:
+            return "-"
+        return GEAR_CN_MAP.get(self.gear, self.gear)
 
 
 class CertificateRead(ORMModel):

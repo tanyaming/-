@@ -4,6 +4,7 @@ import { api } from '../api/client'
 
 const rows = ref([])
 const message = ref('')
+const loading = ref(true)
 const certInput = ref(null)
 const keyInput = ref(null)
 const caInput = ref(null)
@@ -15,12 +16,16 @@ const form = reactive({
 })
 
 async function load() {
-  const [certs, vList] = await Promise.all([
-    api.get('/certificates'),
-    api.get('/vehicles').catch(() => []),
-  ])
-  rows.value = certs
-  vehicles.value = vList
+  try {
+    const [certs, vList] = await Promise.all([
+      api.get('/certificates'),
+      api.get('/vehicles').catch(() => []),
+    ])
+    rows.value = certs
+    vehicles.value = vList
+  } finally {
+    loading.value = false
+  }
 }
 
 async function removeCert(cert) {
@@ -86,7 +91,12 @@ onMounted(load)
       <table>
         <thead><tr><th>ID</th><th>名称</th><th>证书路径</th><th>绑定车辆</th><th>指纹</th><th>状态</th><th>操作</th></tr></thead>
         <tbody>
-          <tr v-if="rows.length === 0"><td colspan="7" class="empty">暂无证书</td></tr>
+          <template v-if="loading">
+            <tr v-for="n in 3" :key="'sk'+n"><td colspan="7" style="padding:0;">
+              <div class="skeleton-row"><div class="skeleton-cell"></div><div class="skeleton-cell"></div><div class="skeleton-cell"></div></div>
+            </td></tr>
+          </template>
+          <tr v-else-if="rows.length === 0"><td colspan="7" class="empty"><span class="empty-icon">🔐</span>暂无证书</td></tr>
           <tr v-for="r in rows" :key="r.id">
             <td>{{ r.id }}</td>
             <td>{{ r.name }}</td>
